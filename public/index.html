@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buffet Sobral</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        .nav-tabs { background: white; display: flex; }
+        .nav-tab { flex: 1; padding: 15px; text-align: center; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; }
+        .nav-tab.active { color: #4caf50; border-bottom-color: #4caf50; background: #f8f4ff; }
+        .content { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .simulator-form { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .event-types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+        .event-type { padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; font-size: 0.9rem; }
+        @media (min-width: 768px) {
+            .event-types { grid-template-columns: repeat(4, 1fr); }
+        }
+        .event-type.active { background: #4caf50; color: white; border-color: #4caf50; }
+        .service-card { background: white; border-radius: 12px; margin: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .service-image-placeholder {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            width: 100%;
+            height: 200px;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .service-image-placeholder:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .service-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 15px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .service-image-placeholder:hover .service-image-overlay {
+            transform: translateY(0);
+        }
+        .service-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
+        }
+        .service-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 767px) {
+            .service-image-placeholder {
+                height: 150px;
+                border-radius: 8px 8px 0 0;
+            }
+        }
+        @media (min-width: 768px) {
+            .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+            .service-card { margin: 0; }
+            .service-image-placeholder {
+                height: 180px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .service-image-placeholder {
+                height: 200px;
+            }
+        }
+        .service-content { padding: 20px; }
+        .service-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 8px; }
+        .service-price { font-size: 1.2rem; font-weight: 600; color: #4caf50; }
+        .btn-add { background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .btn-add:hover { background: #388e3c; }
+        .selected-services { background: #e3f2fd; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .selected-services h3 { color: #1976d2; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .clear-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 0.9rem; }
+        .service-item { background: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .service-info { flex: 1; }
+        .service-name { font-weight: 600; margin-bottom: 5px; }
+        .service-calc { font-size: 0.9rem; color: #666; }
+        .remove-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 0.9rem; }
+        .total-section { background: #f8f9fa; border-radius: 8px; padding: 15px; margin-top: 15px; text-align: center; }
+        .total-amount { font-size: 1.3rem; font-weight: bold; color: #2e7d32; }
+        .whatsapp-btn { background: #25d366; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .whatsapp-btn:hover { background: #128c7e; }
+        .service-slider-container { margin-top: 10px; }
+        .service-slider { width: 100%; height: 4px; border-radius: 2px; background: #e0e0e0; outline: none; -webkit-appearance: none; }
+        .service-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        .service-quantity { font-size: 0.9rem; color: #1976d2; font-weight: 600; margin-bottom: 5px; }
+        .slider-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #999; margin-top: 3px; }
+        .add-services-btn { background: #4caf50; color: white; border: none; padding: 15px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; margin: 15px 0; width: 100%; }
+        .add-services-btn:hover { background: #388e3c; }
+        
+        /* Estilos para modais */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            color: #4caf50;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        /* Estilos para galeria de imagens */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .gallery-item {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 4/3;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gallery-item.placeholder {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            font-size: 3rem;
+            position: relative;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎂 Buffet Sobral</h1>
+        <div>Festas inesquecíveis em Sobral e região</div>
+        <div>📍 Sobral - CE</div>
+        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-add" onclick="showGalleryModal()" style="background: #fff; color: #4caf50; border: 2px solid #4caf50; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                📸 Fotos do Espaço
+            </button>
+            <button class="btn-add" onclick="showLiveCamera()" style="background: #4caf50; color: #fff; border: 2px solid #4caf50; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                🎥 Câmera ao Vivo
+            </button>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="nav-tab" onclick="showTab('catalogo')">📋 Catálogo</button>
+        <button class="nav-tab active" onclick="showTab('simulador')">💰 Simulador</button>
+        <button class="nav-tab" onclick="showTab('agenda')">📅 Agenda</button>
+        <button class="nav-tab" onclick="showTab('avaliacoes')">⭐ Avaliações</button>
+        <button class="nav-tab" onclick="showTab('videos')">🎬 Vídeos</button>
+    </div>
+
+    <div class="content">
+        <div id="catalogo" class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Nossos Serviços</h2>
+                <button class="btn-add" onclick="loadDynamicServices()" style="padding: 8px 15px; font-size: 0.9rem;">
+                    🔄 Atualizar Catálogo
+                </button>
+            </div>
+            
+            <div class="services-grid">
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="buffet-completo" role="img" aria-label="Imagem do serviço Buffet Completo">
+                    🍽️
+                    <div class="service-image-overlay">Buffet completo com variedade</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Buffet Completo</h3>
+                    <p>Salgados, doces, bebidas e serviço completo</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="buffet-completo">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="buffet-completo"
+                               oninput="updateCatalogServiceQuantity('buffet-completo', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 45/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="buffet-completo">Total: R$ 2.655</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Buffet Completo', 45, 'pessoa', 'buffet-completo')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="bolo-personalizado" role="img" aria-label="Imagem do serviço Bolo Personalizado">
+                    🎂
+                    <div class="service-image-overlay">Bolos únicos e personalizados</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Bolo Personalizado</h3>
+                    <p>Bolos temáticos e personalizados para sua festa</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="bolo-personalizado">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="bolo-personalizado"
+                               oninput="updateCatalogServiceQuantity('bolo-personalizado', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 120/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="bolo-personalizado">Total: R$ 7.080</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Bolo Personalizado', 120, 'pessoa', 'bolo-personalizado')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="decoracao-tematica" role="img" aria-label="Imagem do serviço Decoração Temática">
+                    🎨
+                    <div class="service-image-overlay">Decoração criativa e temática</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Decoração Temática</h3>
+                    <p>Decoração completa para todos os tipos de festa</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="decoracao-tematica">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="decoracao-tematica"
+                               oninput="updateCatalogServiceQuantity('decoracao-tematica', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 200/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="decoracao-tematica">Total: R$ 11.800</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Decoração Temática', 200, 'pessoa', 'decoracao-tematica')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="coffee-break" role="img" aria-label="Imagem do serviço Coffee Break Corporativo">
+                    ☕
+                    <div class="service-image-overlay">Coffee break profissional</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Coffee Break Corporativo</h3>
+                    <p>Café, salgados, doces e sucos para eventos empresariais</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="coffee-break">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="coffee-break"
+                               oninput="updateCatalogServiceQuantity('coffee-break', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 25/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="coffee-break">Total: R$ 1.475</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Coffee Break Corporativo', 25, 'pessoa', 'coffee-break')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="jantar-executivo" role="img" aria-label="Imagem do serviço Jantar Executivo">
+                    🥂
+                    <div class="service-image-overlay">Jantar sofisticado e elegante</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Jantar Executivo</h3>
+                    <p>Menu sofisticado para jantares corporativos e eventos formais</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="jantar-executivo">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="jantar-executivo"
+                               oninput="updateCatalogServiceQuantity('jantar-executivo', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 85/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="jantar-executivo">Total: R$ 5.015</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Jantar Executivo', 85, 'pessoa', 'jantar-executivo')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="coquetel-confraternizacao" role="img" aria-label="Imagem do serviço Coquetel de Confraternização">
+                    🍸
+                    <div class="service-image-overlay">Coquetel social e descontraído</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Coquetel de Confraternização</h3>
+                    <p>Finger foods, canapés e bebidas para eventos sociais</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="coquetel-confraternizacao">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="coquetel-confraternizacao"
+                               oninput="updateCatalogServiceQuantity('coquetel-confraternizacao', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 35/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="coquetel-confraternizacao">Total: R$ 2.065</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Coquetel de Confraternização', 35, 'pessoa', 'coquetel-confraternizacao')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="lanche-eventos" role="img" aria-label="Imagem do serviço Lanche para Eventos">
+                    🥪
+                    <div class="service-image-overlay">Lanches práticos e saborosos</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Lanche para Eventos</h3>
+                    <p>Sanduíches, salgados e refrigerantes para eventos casuais</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="lanche-eventos">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="lanche-eventos"
+                               oninput="updateCatalogServiceQuantity('lanche-eventos', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 18/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="lanche-eventos">Total: R$ 1.062</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Lanche para Eventos', 18, 'pessoa', 'lanche-eventos')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image-placeholder" data-service="churrasco-completo" role="img" aria-label="Imagem do serviço Churrasco Completo">
+                    🔥
+                    <div class="service-image-overlay">Churrasco tradicional e saboroso</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Churrasco Completo</h3>
+                    <p>Carnes nobres, acompanhamentos e saladas para confraternizações</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="churrasco-completo">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="churrasco-completo"
+                               oninput="updateCatalogServiceQuantity('churrasco-completo', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ 55/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="churrasco-completo">Total: R$ 3.245</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('Churrasco Completo', 55, 'pessoa', 'churrasco-completo')">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div id="simulador" class="section active">
+            <h2>Simule seu Orçamento</h2>
+            <div class="simulator-form">
+                <div>
+                    <label>Tipo de Evento</label>
+                    <div class="event-types">
+                        <div class="event-type active">Aniversário</div>
+                        <div class="event-type">Casamento</div>
+                        <div class="event-type">Formatura</div>
+                        <div class="event-type">Corporativo</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label>Número de Convidados: <span id="guestCount">59</span></label>
+                    <input type="range" min="20" max="500" value="59" id="guestSlider" style="width: 100%; margin: 10px 0;" oninput="updateGuestCount(this.value)">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-top: 5px;">
+                        <span>20</span>
+                        <span>500</span>
+                    </div>
+                </div>
+
+                <!-- Seção de Serviços Selecionados -->
+                <div id="selectedServices" class="selected-services">
+                    <h3>
+                        Serviços Selecionados
+                        <button class="clear-btn" onclick="clearAllServices()">Limpar</button>
+                    </h3>
+                    
+                    <button class="add-services-btn" onclick="goToCatalog()">
+                        ➕ Adicionar mais serviços
+                    </button>
+                    
+                    <div id="servicesList"></div>
+                    <div class="total-section">
+                        <div>Total do Orçamento</div>
+                        <div class="total-amount" id="totalAmount">R$ 0</div>
+                        <button class="whatsapp-btn" onclick="shareWhatsApp()" id="whatsappBtn" style="display: none;">
+                            📱 Fechar Orçamento no WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="agenda" class="section">
+            <h2>📅 Nossa Agenda</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Confira nossa disponibilidade e agende seu evento</p>
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center;">
+                <p>Entre em contato para verificar disponibilidade:</p>
+                <p style="margin-top: 10px;">📱 (85) 99999-9999</p>
+                <p>📧 contato@buffetsobral.com</p>
+            </div>
+        </div>
+
+        <div id="avaliacoes" class="section">
+            <h2>Avaliações dos Clientes</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 1.5rem; color: #ffc107;">⭐⭐⭐⭐⭐</div>
+                <div>4.9/5 (127 avaliações)</div>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <strong>Ana Paula</strong>
+                    <span style="color: #999;">14/01/2024</span>
+                </div>
+                <div style="color: #ffc107; margin-bottom: 10px;">⭐⭐⭐⭐⭐</div>
+                <p>Buffet maravilhoso! A festa do meu filho ficou perfeita. Recomendo demais!</p>
+            </div>
+        </div>
+
+        <div id="videos" class="section">
+            <h2>🎬 Vídeos em Destaque</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Conheça nosso espaço e serviços através dos nossos vídeos</p>
+            
+            <div id="videosGrid" style="display: grid; gap: 20px;">
+                <!-- Vídeos serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Galeria de Fotos -->
+    <div id="galleryModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📸 Fotos do Espaço</h2>
+                <button class="close-btn" onclick="closeModal('galleryModal')">&times;</button>
+            </div>
+            
+            <div id="galleryGrid" class="gallery-grid">
+                <!-- Fotos serão carregadas aqui -->
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666;">
+                Conheça nosso espaço através das fotos
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal para Câmera ao Vivo -->
+    <div id="cameraModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🎥 Câmera ao Vivo</h2>
+                <button class="close-btn" onclick="closeModal('cameraModal')">&times;</button>
+            </div>
+            <div style="background: linear-gradient(135deg, #4caf50, #2e7d32); height: 300px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem; margin-bottom: 20px;">
+                📹
+            </div>
+            <p style="text-align: center; color: #666;">
+                Veja nosso espaço em tempo real! <br>
+                <small>Câmera disponível das 8h às 18h</small>
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal para Vídeos -->
+    <div id="videoModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="videoTitle">🎬 Vídeo</h2>
+                <button class="close-btn" onclick="closeModal('videoModal')">&times;</button>
+            </div>
+            <div style="background: linear-gradient(135deg, #4caf50, #2e7d32); height: 300px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 4rem; margin-bottom: 20px;">
+                ▶️
+            </div>
+            <p style="text-align: center; color: #666;" id="videoDescription">
+                Vídeo em reprodução...
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let selectedServices = [];
+
+        function showTab(tabName) {
+            // Esconder todas as seções
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remover classe active de todas as abas
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar a seção selecionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Adicionar classe active à aba clicada
+            event.target.classList.add('active');
+        }
+
+        function updateGuestCount(value) {
+            document.getElementById('guestCount').textContent = value;
+            updateServiceCalculations();
+            
+            // Sincronizar sliders do catálogo
+            syncCatalogSliders(value);
+        }
+        
+        function syncCatalogSliders(guestCount) {
+            // Atualizar todos os sliders do catálogo
+            const catalogSliders = document.querySelectorAll('[data-service-slider]');
+            catalogSliders.forEach(slider => {
+                slider.value = guestCount;
+                const serviceId = slider.getAttribute('data-service-slider');
+                updateCatalogServiceQuantity(serviceId, guestCount);
+            });
+        }
+        
+        function updateCatalogServiceQuantity(serviceId, newQuantity) {
+            const quantityDisplay = document.querySelector(`[data-quantity-display="${serviceId}"]`);
+            const priceDisplay = document.querySelector(`[data-price-display="${serviceId}"]`);
+            
+            if (quantityDisplay) {
+                quantityDisplay.textContent = newQuantity;
+            }
+            
+            if (priceDisplay) {
+                // Buscar preço do serviço no localStorage
+                const savedServices = localStorage.getItem('buffetServices');
+                let pricePerPerson = 0;
+                
+                if (savedServices) {
+                    const services = JSON.parse(savedServices);
+                    const service = services.find(s => s.serviceId === serviceId);
+                    if (service) {
+                        pricePerPerson = service.price;
+                    }
+                }
+                
+                // Fallback para preços padrão se não encontrar no localStorage
+                if (pricePerPerson === 0) {
+                    const servicePrices = {
+                        'buffet-completo': 45,
+                        'bolo-personalizado': 120,
+                        'decoracao-tematica': 200,
+                        'coffee-break': 25,
+                        'jantar-executivo': 85,
+                        'coquetel-confraternizacao': 35,
+                        'lanche-eventos': 18,
+                        'churrasco-completo': 55
+                    };
+                    pricePerPerson = servicePrices[serviceId] || 0;
+                }
+                
+                const totalPrice = pricePerPerson * parseInt(newQuantity);
+                priceDisplay.textContent = `Total: R$ ${totalPrice.toLocaleString('pt-BR')}`;
+            }
+        }
+
+        function addServiceWithQuantity(name, price, unit, serviceId) {
+            // Verificar se o serviço já foi adicionado
+            if (selectedServices.find(service => service.name === name)) {
+                alert('Este serviço já foi adicionado!');
+                return;
+            }
+            
+            // Pegar a quantidade do slider específico do serviço
+            const serviceSlider = document.querySelector(`[data-service-slider="${serviceId}"]`);
+            const quantity = serviceSlider ? parseInt(serviceSlider.value) : parseInt(document.getElementById('guestCount').textContent);
+            
+            selectedServices.push({
+                name: name,
+                price: price,
+                unit: unit,
+                quantity: quantity,
+                serviceId: serviceId,
+                id: Date.now() // ID único para cada serviço
+            });
+            
+            updateSelectedServicesDisplay();
+            showTab('simulador');
+        }
+
+        function removeService(serviceName) {
+            selectedServices = selectedServices.filter(service => service.name !== serviceName);
+            updateSelectedServicesDisplay();
+        }
+
+        function clearAllServices() {
+            selectedServices = [];
+            updateSelectedServicesDisplay();
+        }
+
+        function updateSelectedServicesDisplay() {
+            const servicesList = document.getElementById('servicesList');
+            const whatsappBtn = document.getElementById('whatsappBtn');
+            
+            if (selectedServices.length === 0) {
+                servicesList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhum serviço selecionado ainda.</p>';
+                whatsappBtn.style.display = 'none';
+                document.getElementById('totalAmount').textContent = 'R$ 0';
+                return;
+            }
+            
+            whatsappBtn.style.display = 'flex';
+            
+            let total = 0;
+            
+            servicesList.innerHTML = selectedServices.map(service => {
+                const serviceTotal = service.price * service.quantity;
+                total += serviceTotal;
+                
+                return `
+                    <div class="service-item">
+                        <div class="service-info">
+                            <div class="service-name">${service.name}</div>
+                            <div class="service-quantity">Quantidade: ${service.quantity} pessoas</div>
+                            <div class="service-slider-container">
+                                <input type="range" min="20" max="500" value="${service.quantity}" 
+                                       class="service-slider" 
+                                       oninput="updateServiceQuantity(${service.id}, this.value)">
+                                <div class="slider-labels">
+                                    <span>20</span>
+                                    <span>500</span>
+                                </div>
+                            </div>
+                            <div class="service-calc">
+                                R$ ${service.price}/${service.unit} = R$ ${serviceTotal.toLocaleString('pt-BR')}
+                            </div>
+                        </div>
+                        <button class="remove-btn" onclick="removeService('${service.name}')">Remover</button>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('totalAmount').textContent = `R$ ${total.toLocaleString('pt-BR')}`;
+        }
+
+        function updateServiceCalculations() {
+            // Atualizar a quantidade de todos os serviços com base no slider principal
+            const mainGuestCount = parseInt(document.getElementById('guestCount').textContent);
+            selectedServices.forEach(service => {
+                service.quantity = mainGuestCount;
+            });
+            
+            if (selectedServices.length > 0) {
+                updateSelectedServicesDisplay();
+            }
+        }
+
+        function updateServiceQuantity(serviceId, newQuantity) {
+            const service = selectedServices.find(s => s.id === serviceId);
+            if (service) {
+                service.quantity = parseInt(newQuantity);
+                updateSelectedServicesDisplay();
+            }
+        }
+
+        function goToCatalog() {
+            showTab('catalogo');
+        }
+
+        function shareWhatsApp() {
+            const guestCount = document.getElementById('guestCount').textContent;
+            const totalAmount = document.getElementById('totalAmount').textContent;
+            const selectedEventType = document.querySelector('.event-type.active').textContent;
+            
+            let message = `🎉 *Orçamento Buffet Sobral* 🎉\n\n`;
+            message += `📋 *Tipo de Evento:* ${selectedEventType}\n`;
+            message += `👥 *Número de Convidados:* ${guestCount}\n\n`;
+            message += `*Serviços Selecionados:*\n`;
+            
+            selectedServices.forEach(service => {
+                const serviceTotal = service.price * service.quantity;
+                message += `• ${service.name}\n`;
+                message += `  ${service.quantity} pessoas × R$ ${service.price} = R$ ${serviceTotal.toLocaleString('pt-BR')}\n\n`;
+            });
+            
+            message += `💰 *Total:* ${totalAmount}\n\n`;
+            message += `Gostaria de mais informações sobre este orçamento!`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/5585999999999?text=${encodedMessage}`;
+            
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Carregar serviços dinâmicos do localStorage
+        function loadDynamicServices() {
+            console.log('Carregando serviços dinâmicos...');
+            const savedServices = localStorage.getItem('buffetServices');
+            
+            if (savedServices) {
+                console.log('Serviços encontrados no localStorage:', savedServices);
+                const services = JSON.parse(savedServices);
+                updateCatalogWithServices(services);
+            } else {
+                console.log('Nenhum serviço encontrado no localStorage, carregando serviços padrão...');
+                // Carregar serviços padrão se não houver dados salvos
+                const defaultServices = [
+                    { id: 1, name: 'Buffet Completo', description: 'Salgados, doces, bebidas e serviço completo', price: 45, serviceId: 'buffet-completo' },
+                    { id: 2, name: 'Bolo Personalizado', description: 'Bolos temáticos e personalizados para sua festa', price: 120, serviceId: 'bolo-personalizado' },
+                    { id: 3, name: 'Decoração Temática', description: 'Decoração completa para todos os tipos de festa', price: 200, serviceId: 'decoracao-tematica' },
+                    { id: 4, name: 'Coffee Break Corporativo', description: 'Café, salgados, doces e sucos para eventos empresariais', price: 25, serviceId: 'coffee-break' },
+                    { id: 5, name: 'Jantar Executivo', description: 'Menu sofisticado para jantares corporativos e eventos formais', price: 85, serviceId: 'jantar-executivo' },
+                    { id: 6, name: 'Coquetel de Confraternização', description: 'Finger foods, canapés e bebidas para eventos sociais', price: 35, serviceId: 'coquetel-confraternizacao' },
+                    { id: 7, name: 'Lanche para Eventos', description: 'Sanduíches, salgados e refrigerantes para eventos casuais', price: 18, serviceId: 'lanche-eventos' },
+                    { id: 8, name: 'Churrasco Completo', description: 'Carnes nobres, acompanhamentos e saladas para confraternizações', price: 55, serviceId: 'churrasco-completo' }
+                ];
+                updateCatalogWithServices(defaultServices);
+            }
+        }
+
+        // Atualizar catálogo com serviços dinâmicos
+        function updateCatalogWithServices(services) {
+            const servicesGrid = document.querySelector('.services-grid');
+            if (!servicesGrid) return;
+
+            // Limpar grid atual
+            servicesGrid.innerHTML = '';
+
+            // Adicionar cada serviço
+            services.forEach(service => {
+                const serviceCard = createServiceCard(service);
+                servicesGrid.appendChild(serviceCard);
+            });
+
+            // Reinicializar sliders
+            const initialGuestCount = document.getElementById('guestCount').textContent;
+            syncCatalogSliders(initialGuestCount);
+        }
+
+        // Criar card de serviço
+        function createServiceCard(service) {
+            const serviceDiv = document.createElement('div');
+            serviceDiv.className = 'service-card';
+            
+            const serviceId = service.serviceId || generateServiceId(service.name);
+            const totalPrice = service.price * 59; // Preço inicial para 59 pessoas
+            
+            serviceDiv.innerHTML = `
+                <div class="service-image-placeholder" data-service="${serviceId}" role="img" aria-label="Imagem do serviço ${service.name}">
+                    ${getServiceIcon(service.name)}
+                    <div class="service-image-overlay">${service.description}</div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">${service.name}</h3>
+                    <p>${service.description}</p>
+                    
+                    <!-- Slider para quantidade de pessoas -->
+                    <div class="service-slider-container" style="margin: 15px 0;">
+                        <div class="service-quantity">Quantidade: <span data-quantity-display="${serviceId}">59</span> pessoas</div>
+                        <input type="range" min="20" max="500" value="59" 
+                               class="service-slider" 
+                               data-service-slider="${serviceId}"
+                               oninput="updateCatalogServiceQuantity('${serviceId}', this.value)">
+                        <div class="slider-labels">
+                            <span>20</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div>
+                            <div class="service-price">R$ ${service.price}/pessoa</div>
+                            <div style="font-size: 0.9rem; color: #666;" data-price-display="${serviceId}">Total: R$ ${totalPrice.toLocaleString('pt-BR')}</div>
+                        </div>
+                        <button class="btn-add" onclick="addServiceWithQuantity('${service.name}', ${service.price}, 'pessoa', '${serviceId}')">Adicionar</button>
+                    </div>
+                </div>
+            `;
+            
+            return serviceDiv;
+        }
+
+        // Obter ícone do serviço baseado no nome
+        function getServiceIcon(serviceName) {
+            const icons = {
+                'Buffet Completo': '🍽️',
+                'Bolo Personalizado': '🎂',
+                'Decoração Temática': '🎨',
+                'Coffee Break Corporativo': '☕',
+                'Jantar Executivo': '🥂',
+                'Coquetel de Confraternização': '🍸',
+                'Lanche para Eventos': '🥪',
+                'Churrasco Completo': '🔥'
+            };
+            
+            // Buscar por nome exato ou palavras-chave
+            for (const [key, icon] of Object.entries(icons)) {
+                if (serviceName.includes(key) || key.includes(serviceName)) {
+                    return icon;
+                }
+            }
+            
+            // Ícones baseados em palavras-chave
+            if (serviceName.toLowerCase().includes('buffet')) return '🍽️';
+            if (serviceName.toLowerCase().includes('bolo')) return '🎂';
+            if (serviceName.toLowerCase().includes('decoração')) return '🎨';
+            if (serviceName.toLowerCase().includes('coffee')) return '☕';
+            if (serviceName.toLowerCase().includes('jantar')) return '🥂';
+            if (serviceName.toLowerCase().includes('coquetel')) return '🍸';
+            if (serviceName.toLowerCase().includes('lanche')) return '🥪';
+            if (serviceName.toLowerCase().includes('churrasco')) return '🔥';
+            
+            return '🎉'; // Ícone padrão
+        }
+
+        // Gerar ID do serviço baseado no nome
+        function generateServiceId(name) {
+            return name.toLowerCase()
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, '-')
+                .substring(0, 20);
+        }
+
+        // Adicionar interatividade aos tipos de evento
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.event-type').forEach(type => {
+                type.addEventListener('click', function() {
+                    document.querySelectorAll('.event-type').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Carregar serviços dinâmicos
+            loadDynamicServices();
+            
+            // Inicializar sliders do catálogo
+            const initialGuestCount = document.getElementById('guestCount').textContent;
+            syncCatalogSliders(initialGuestCount);
+            
+            // Inicializar display dos serviços selecionados
+            updateSelectedServicesDisplay();
+            
+            // Detectar mudanças no localStorage (para sincronização entre abas)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'buffetServices') {
+                    console.log('Serviços atualizados no localStorage, recarregando...');
+                    loadDynamicServices();
+                }
+            });
+            
+            // Verificar mudanças no localStorage periodicamente (fallback)
+            setInterval(function() {
+                const currentServices = localStorage.getItem('buffetServices');
+                if (currentServices !== window.lastServicesData) {
+                    console.log('Detectada mudança nos serviços, recarregando...');
+                    window.lastServicesData = currentServices;
+                    loadDynamicServices();
+                }
+            }, 2000); // Verificar a cada 2 segundos
+        });
+
+        // Funções para os modais
+        function showGalleryModal() {
+            document.getElementById('galleryModal').style.display = 'flex';
+            loadGalleryPhotos();
+        }
+
+        function showLiveCamera() {
+            document.getElementById('cameraModal').style.display = 'flex';
+        }
+
+        function playVideo(youtubeId, title) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.9);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10001;
+            `;
+            
+            modal.innerHTML = `
+                <div style="max-width: 90%; max-height: 90%; text-align: center;">
+                    <iframe width="800" height="450" 
+                            src="https://www.youtube.com/embed/${youtubeId}?autoplay=1" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                            style="border-radius: 8px; max-width: 100%; max-height: 70vh;">
+                    </iframe>
+                    <div style="color: white; margin-top: 15px; font-size: 1.2rem;">${title}</div>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 2rem; cursor: pointer;">×</button>
+                </div>
+            `;
+            
+            modal.onclick = function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+            
+            document.body.appendChild(modal);
+        }
+        
+        function loadPublicVideos() {
+            const videos = getPublicVideos();
+            const videosGrid = document.getElementById('videosGrid');
+            
+            if (videos.length === 0) {
+                // Mostrar vídeos de exemplo se não houver vídeos carregados
+                videosGrid.innerHTML = `
+                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="background: linear-gradient(135deg, #4caf50, #2e7d32); height: 200px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; position: relative;">
+                            🎥
+                            <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 6px;">
+                                <h3 style="margin: 0; font-size: 1.1rem;">Tour pelo Espaço</h3>
+                            </div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p style="color: #666; margin-bottom: 15px;">Conheça todos os ambientes do nosso buffet</p>
+                            <button class="btn-add" onclick="showNotification('Vídeo de exemplo. Adicione vídeos reais no painel admin!', 'info')" style="width: 100%;">▶️ Assistir Vídeo</button>
+                        </div>
+                    </div>
+                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="background: linear-gradient(135deg, #4caf50, #2e7d32); height: 200px; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; position: relative;">
+                            🍽️
+                            <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 6px;">
+                                <h3 style="margin: 0; font-size: 1.1rem;">Nossos Serviços</h3>
+                            </div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p style="color: #666; margin-bottom: 15px;">Veja como preparamos nossos pratos e serviços</p>
+                            <button class="btn-add" onclick="showNotification('Vídeo de exemplo. Adicione vídeos reais no painel admin!', 'info')" style="width: 100%;">▶️ Assistir Vídeo</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Mostrar vídeos reais do YouTube
+                videosGrid.innerHTML = videos.map(video => `
+                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="position: relative; height: 200px; background-image: url('https://img.youtube.com/vi/${video.youtubeId}/maxresdefault.jpg'); background-size: cover; background-position: center;">
+                            <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">
+                                <div style="background: rgba(255,255,255,0.9); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer;" onclick="playVideo('${video.youtubeId}', '${video.title}')">
+                                    ▶️
+                                </div>
+                            </div>
+                            <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 6px;">
+                                <h3 style="margin: 0; font-size: 1.1rem; color: white;">${video.title}</h3>
+                            </div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p style="color: #666; margin-bottom: 15px;">${video.description}</p>
+                            <button class="btn-add" onclick="playVideo('${video.youtubeId}', '${video.title}')" style="width: 100%;">▶️ Assistir Vídeo</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function getPublicVideos() {
+            const videos = localStorage.getItem('buffetVideos');
+            return videos ? JSON.parse(videos) : [];
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Fechar modal clicando fora do conteúdo
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // Função para mostrar notificações
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#4caf50' : type === 'error' ? '#f44336' : '#2196f3'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Função para debug do localStorage
+        function debugLocalStorage() {
+            console.log('=== DEBUG LOCALSTORAGE ===');
+            const services = localStorage.getItem('buffetServices');
+            console.log('Dados brutos:', services);
+            if (services) {
+                try {
+                    const parsed = JSON.parse(services);
+                    console.log('Dados parseados:', parsed);
+                    console.log('Quantidade de serviços:', parsed.length);
+                } catch (e) {
+                    console.error('Erro ao parsear:', e);
+                }
+            } else {
+                console.log('Nenhum dado encontrado');
+            }
+            console.log('========================');
+        }
+
+        // Funções para visualizar galeria de fotos (somente leitura)
+        
+        function loadGalleryPhotos() {
+            const photos = getGalleryPhotos();
+            const galleryGrid = document.getElementById('galleryGrid');
+            
+            if (photos.length === 0) {
+                // Mostrar fotos de exemplo se não houver fotos carregadas
+                galleryGrid.innerHTML = `
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example1')">🏛️<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Salão Principal</div></div>
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example2')">🍽️<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Área Gourmet</div></div>
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example3')">🎂<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Mesa de Doces</div></div>
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example4')">🎨<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Decorações</div></div>
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example5')">💒<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Altar Casamento</div></div>
+                    <div class="gallery-item placeholder" onclick="showPhotoViewer('example6')">🎉<div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">Área de Festa</div></div>
+                `;
+            } else {
+                // Mostrar fotos reais (somente visualização para clientes)
+                galleryGrid.innerHTML = photos.map(photo => `
+                    <div class="gallery-item" onclick="showPhotoViewer('${photo.id}')" style="position: relative; background-image: url('${photo.data}'); background-size: cover; background-position: center;">
+                        <div style="position: absolute; bottom: 5px; left: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;">
+                            ${photo.name}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function getGalleryPhotos() {
+            const photos = localStorage.getItem('buffetGallery');
+            return photos ? JSON.parse(photos) : [];
+        }
+        
+        function saveGalleryPhotos(photos) {
+            localStorage.setItem('buffetGallery', JSON.stringify(photos));
+        }
+        
+        // Função de exclusão removida - apenas no admin
+        
+        function showPhotoViewer(photoId) {
+            const photos = getGalleryPhotos();
+            const photo = photos.find(p => p.id === photoId);
+            
+            if (photo) {
+                // Criar modal de visualização de foto
+                const viewer = document.createElement('div');
+                viewer.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.9);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10001;
+                `;
+                
+                viewer.innerHTML = `
+                    <div style="max-width: 90%; max-height: 90%; text-align: center;">
+                        <img src="${photo.data}" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                        <div style="color: white; margin-top: 15px; font-size: 1.2rem;">${photo.name}</div>
+                        <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 2rem; cursor: pointer;">×</button>
+                    </div>
+                `;
+                
+                viewer.onclick = function(e) {
+                    if (e.target === viewer) {
+                        viewer.remove();
+                    }
+                };
+                
+                document.body.appendChild(viewer);
+            } else {
+                // Mostrar exemplo para fotos de demonstração
+                showNotification('Esta é uma foto de exemplo. Adicione suas próprias fotos!', 'info');
+            }
+        }
+
+        // Adicionar função de debug ao window para teste manual
+        window.debugLocalStorage = debugLocalStorage;
+        window.loadDynamicServices = loadDynamicServices;
+        window.loadGalleryPhotos = loadGalleryPhotos;
+    </script>
+</body>
+</html>

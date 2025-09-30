@@ -1,0 +1,13 @@
+{
+  "name": "buffet-sobral-clean",
+  "version": "1.0.0",
+  "description": "Site do Buffet Sobral - Versão Limpa",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "build": "echo 'Build completed'"
+  },
+  "keywords": ["buffet", "eventos", "sobral"],
+  "author": "Buffet Sobral",
+  "license": "MIT"
+}
